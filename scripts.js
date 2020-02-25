@@ -12,14 +12,14 @@ const initialState = {
       title: "Bye Bye Bye",
       artist: "N'Sync",
       songId: 1,
-      songArray: songList[1],
+      songArray: chorusList[1],
       arrayPosition: 0,
     },
     2: {
       title: "What's Goin' On",
       artist: "Four Non-Blondes",
       songId: 2,
-      songArray: songList[2],
+      songArray: chorusList[2],
       arrayPosition: 0,
     }
   }
@@ -42,7 +42,7 @@ const lyricReducer = (state = initialState.songsById, action) => {
       return newSongsByIdStateSlice;
     case 'RESTART_SONG':
       newSongsByIdEntry = Object.assign({}, state[action.currentSongId], {arrayPosition: 0})
-      newSongsByIdStateSlice = Object.assign({}, state, {}
+      newSongsByIdStateSlice = Object.assign({}, state, {
         [action.currentSongId]: newSongsByIdEntry
       });
       return newSongsByIdStateSlice;
@@ -60,6 +60,11 @@ const lyricReducer = (state = initialState.songsById, action) => {
    }
  }
 
+ const rootReducer = this.Redux.combineReducers({
+   currentSongId: songChangeReducer,
+   songsById: lyricReducer
+ });
+
 
 //JEST TESTS + SETUP
 const { expect } = window;
@@ -71,14 +76,14 @@ expect(lyricReducer(initialState.songsById, { type: 'NEXT_LYRIC', currentSongId:
     title: "Bye Bye Bye",
     artist: "N'Sync",
     songId: 1,
-    songArray: songList[1],
+    songArray: chorusList[1],
     arrayPosition: 0,
   },
   2: {
     title: "What's Goin' On",
     artist: "Four Non-Blondes",
     songId: 2,
-    songArray: songList[2],
+    songArray: chorusList[2],
     arrayPosition: 1,
   }
 });
@@ -88,14 +93,14 @@ expect(lyricReducer(initialState.songsById, { type: 'RESTART_SONG', currentSongI
     title: "Bye Bye Bye",
     artist: "N'Sync",
     songId: 1,
-    songArray: songList[1],
+    songArray: chorusList[1],
     arrayPosition: 0,
   },
   2: {
     title: "What's Goin' On",
     artist: "Four Non-Blondes",
     songId: 2,
-    songArray: songList[2],
+    songArray: chorusList[2],
     arrayPosition: 0,
   }
 });
@@ -107,8 +112,7 @@ expect(songChangeReducer(initialState, { type: 'CHANGE_SONG', newSelectedSongId:
 
 //REDUX STORE
 const { createStore } = Redux;
-const store = createStore(lyricReducer);
-console.log(store.getState());
+const store = createStore(rootReducer);
 
 // RENDERING STATE IN DOM
 const renderChorus = () => {
@@ -116,11 +120,20 @@ const renderChorus = () => {
   while (chorusDisplay.firstChild) {
     chorusDisplay.removeChild(chorusDisplay.firstChild);
   }
-  const currentPosition = store.getState().arrayPosition;
-  const currentLine = store.getState().chorusList[currentPosition]
-  const renderedLine = document.createTextNode(currentLine)
-  console.log(renderedLine);
-  document.getElementById('words').appendChild(renderedLine);
+  if (store.getState().currentSongId) {
+    const currentLine = document.createTextNode(store.getState().songsById[store.getState().currentSongId].songArray[store.getState().songsById[store.getState().currentSongId].arrayPosition]);
+    document.getElementById('lyrics').appendChild(currentLine);
+  } else {
+    const selectSongMessage = document.createTextNode("Select a song from the menu above to sing along!");
+    document.getElementById('lyrics').appendChild(selectSongMessage);
+  }
+  // if (store.getState().currentSongId) {
+  //   const currentPosition = store.getState().arrayPosition;
+  //   const currentLine = store.getState().chorusList[currentPosition]
+  //   const renderedLine = document.createTextNode(currentLine)
+  //   document.getElementById('words').appendChild(renderedLine);
+  //
+  // }
 }
 
 const renderSongs = () => {
